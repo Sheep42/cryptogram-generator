@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 )
 
@@ -20,9 +23,26 @@ func main() {
 		return
 	}
 
-	if msg == "" {
-		fmt.Println("No Message!")
-		return
+	if len(msg) < 1 {
+
+		stat, _ := os.Stdin.Stat()
+		if (stat.Mode() & os.ModeCharDevice) == 0 {
+
+			reader := bufio.NewReader(os.Stdin)
+
+			if b, err := ioutil.ReadAll(reader); err != nil {
+				fmt.Println(err)
+			} else {
+				msg = strings.TrimSpace(string(b))
+			}
+
+		}
+
+		if len(msg) < 1 {
+			fmt.Println("No Message!")
+			return
+		}
+
 	}
 
 	key := generateKey(shift)
