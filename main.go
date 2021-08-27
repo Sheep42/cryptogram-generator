@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -31,7 +32,7 @@ func main() {
 			reader := bufio.NewReader(os.Stdin)
 
 			if b, err := ioutil.ReadAll(reader); err != nil {
-				fmt.Println(err)
+				panic(err)
 			} else {
 				msg = strings.TrimSpace(string(b))
 			}
@@ -70,6 +71,8 @@ func generateKey(n int) map[rune]rune {
 func encrypt(key map[rune]rune, msg string) string {
 
 	msg = strings.ToUpper(msg)
+	msg = sanitizeInput(msg)
+
 	var newMsg []rune
 
 	for _, c := range msg {
@@ -84,5 +87,19 @@ func encrypt(key map[rune]rune, msg string) string {
 	encrypted := string(newMsg)
 
 	return encrypted
+
+}
+
+func sanitizeInput(msg string) string {
+
+	// Strip ANSI Color Codes
+	const ansi = "[\u001B\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[a-zA-Z\\d]*)*)?\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PRZcf-ntqry=><~]))"
+	ansiReg := regexp.MustCompile(ansi)
+
+	// Strip non-alpha characters
+	alphaReg := regexp.MustCompile("[^a-zA-Z]+")
+
+	msg = ansiReg.ReplaceAllString(msg, "")
+	return alphaReg.ReplaceAllString(msg, "")
 
 }
